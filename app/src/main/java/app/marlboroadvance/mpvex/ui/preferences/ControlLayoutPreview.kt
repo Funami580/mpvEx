@@ -25,8 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -395,13 +397,23 @@ private fun PreviewButton(
         )
       }
       PlayerButton.REPEAT_MODE,
+      PlayerButton.AB_LOOP_MODE,
       PlayerButton.SHUFFLE,
         -> {
+        val drawBehind = button.drawBehind?.invoke(null)
+        val tint = Color.White
+        var modifier = Modifier.size(size * 0.7f)
+
+        if (drawBehind != null) {
+          val textMeasurer = rememberTextMeasurer()
+          modifier = modifier.drawBehind { drawBehind(textMeasurer, tint) }
+        }
+
         Icon(
           imageVector = button.icon,
           contentDescription = null,
-          modifier = Modifier.size(size * 0.7f),
-          tint = Color.White,
+          modifier = modifier,
+          tint = tint,
         )
       }
       else -> {

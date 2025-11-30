@@ -429,6 +429,16 @@ fun PlayerControls(
               TextPlayerUpdate(text)
             }
 
+            is PlayerUpdates.AbLoopMode -> {
+              val mode = (currentPlayerUpdate as PlayerUpdates.AbLoopMode).mode
+              val text = when (mode) {
+                app.marlboroadvance.mpvex.ui.player.AbLoopMode.OFF -> "A-B Loop: Off"
+                app.marlboroadvance.mpvex.ui.player.AbLoopMode.ON_A_SET -> "A-B Loop: A point set"
+                app.marlboroadvance.mpvex.ui.player.AbLoopMode.ON_ALL_SET -> "A-B Loop: On"
+              }
+              TextPlayerUpdate(text)
+            }
+
             is PlayerUpdates.Shuffle -> {
               val enabled = (currentPlayerUpdate as PlayerUpdates.Shuffle).enabled
               val text = if (enabled) {

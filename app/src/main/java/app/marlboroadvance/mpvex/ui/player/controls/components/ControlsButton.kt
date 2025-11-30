@@ -20,8 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.marlboroadvance.mpvex.preferences.AppearancePreferences
@@ -41,6 +45,7 @@ fun ControlsButton(
   onLongClick: () -> Unit = {},
   title: String? = null,
   color: Color? = null,
+  drawBehind: (DrawScope.(TextMeasurer, Color) -> Unit)? = null,
 ) {
   val interactionSource = remember { MutableInteractionSource() }
   val appearancePreferences = koinInject<AppearancePreferences>()
@@ -76,14 +81,21 @@ fun ControlsButton(
         )
       },
   ) {
+    val tint = color ?: MaterialTheme.colorScheme.onSurface
+    var modifier = Modifier
+      .padding(MaterialTheme.spacing.small)
+      .size(20.dp)
+
+    if (drawBehind != null) {
+      val textMeasurer = rememberTextMeasurer()
+      modifier = modifier.drawBehind { drawBehind(textMeasurer, tint) }
+    }
+
     Icon(
       imageVector = icon,
       contentDescription = title,
-      tint = color ?: MaterialTheme.colorScheme.onSurface,
-      modifier =
-        Modifier
-          .padding(MaterialTheme.spacing.small)
-          .size(20.dp),
+      tint = tint,
+      modifier = modifier,
     )
   }
 }

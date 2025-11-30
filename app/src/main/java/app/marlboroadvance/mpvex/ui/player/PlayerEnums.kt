@@ -110,6 +110,10 @@ sealed class PlayerUpdates {
     val mode: app.marlboroadvance.mpvex.ui.player.RepeatMode,
   ) : PlayerUpdates()
 
+  data class AbLoopMode(
+    val mode: app.marlboroadvance.mpvex.ui.player.AbLoopMode,
+  ) : PlayerUpdates()
+
   data class Shuffle(
     val enabled: Boolean,
   ) : PlayerUpdates()

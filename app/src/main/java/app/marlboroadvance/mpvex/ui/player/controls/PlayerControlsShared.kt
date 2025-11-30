@@ -45,6 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -424,6 +426,52 @@ fun RenderPlayerButton(
         } else {
           when (repeatMode) {
             app.marlboroadvance.mpvex.ui.player.RepeatMode.OFF -> MaterialTheme.colorScheme.onSurface
+            else -> MaterialTheme.colorScheme.primary
+          }
+        },
+        modifier = Modifier.size(buttonSize),
+      )
+    }
+
+    PlayerButton.AB_LOOP_MODE -> {
+      val abLoopMode by viewModel.abLoopMode.collectAsState()
+      val text = when (abLoopMode) {
+        app.marlboroadvance.mpvex.ui.player.AbLoopMode.ON_ALL_SET -> {
+          AnnotatedString.Builder()
+            .apply {
+              pushStyle(SpanStyle(color = Color.Green))
+              append("AB")
+              pop()
+            }
+            .toAnnotatedString()
+        }
+        app.marlboroadvance.mpvex.ui.player.AbLoopMode.ON_A_SET -> {
+          AnnotatedString.Builder()
+            .apply {
+              pushStyle(SpanStyle(color = Color.Green))
+              append("A")
+              pop()
+
+              pushStyle(SpanStyle(color = Color.Red))
+              append("B")
+              pop()
+            }
+            .toAnnotatedString()
+        }
+        app.marlboroadvance.mpvex.ui.player.AbLoopMode.OFF -> null
+      }
+      ControlsButton(
+        icon = Icons.Default.Repeat,
+        drawBehind = button.drawBehind?.invoke(text),
+        onClick = viewModel::cycleAbLoop,
+        color = if (hideBackground) {
+          when (abLoopMode) {
+            app.marlboroadvance.mpvex.ui.player.AbLoopMode.OFF -> controlColor
+            else -> MaterialTheme.colorScheme.primary
+          }
+        } else {
+          when (abLoopMode) {
+            app.marlboroadvance.mpvex.ui.player.AbLoopMode.OFF -> MaterialTheme.colorScheme.onSurface
             else -> MaterialTheme.colorScheme.primary
           }
         },

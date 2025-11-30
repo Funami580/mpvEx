@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -48,6 +49,12 @@ enum class RepeatMode {
   OFF,      // No repeat
   ONE,      // Repeat current file
   ALL       // Repeat all (playlist)
+}
+
+enum class AbLoopMode {
+  OFF,
+  ON_A_SET,
+  ON_ALL_SET,
 }
 
 class PlayerViewModelProviderFactory(
@@ -176,6 +183,23 @@ class PlayerViewModel(
 
   private val _shuffleEnabled = MutableStateFlow(false)
   val shuffleEnabled: StateFlow<Boolean> = _shuffleEnabled.asStateFlow()
+
+  // AB-Loop
+  private val _abLoopSetA = MPVLib.propString["ab-loop-a"].map { it != null && it != "no" }
+  private val _abLoopSetB = MPVLib.propString["ab-loop-b"].map { it != null && it != "no" }
+  val abLoopMode = _abLoopSetA.combine(_abLoopSetB) { abLoopSetA, abLoopSetB ->
+    when (abLoopSetA) {
+      true if abLoopSetB -> {
+        AbLoopMode.ON_ALL_SET
+      }
+      true -> {
+        AbLoopMode.ON_A_SET
+      }
+      else -> {
+        AbLoopMode.OFF
+      }
+    }
+  }.stateIn(viewModelScope, SharingStarted.Lazily, AbLoopMode.OFF)
 
   init {
     // Track selection is now handled by TrackSelector in PlayerActivity
@@ -807,6 +831,21 @@ class PlayerViewModel(
 
   fun shouldRepeatPlaylist(): Boolean {
     return _repeatMode.value == RepeatMode.ALL && (host as? PlayerActivity)?.playlist?.isNotEmpty() == true
+  }
+
+  // ==================== AB-Loop ====================
+
+  fun cycleAbLoop() {
+    val nextAbLoopMode = when (abLoopMode.value) {
+      AbLoopMode.OFF -> AbLoopMode.ON_A_SET
+      AbLoopMode.ON_A_SET -> AbLoopMode.ON_ALL_SET
+      AbLoopMode.ON_ALL_SET -> AbLoopMode.OFF
+    }
+
+    MPVLib.command("ab-loop")
+
+    // Show overlay update instead of toast
+    playerUpdate.value = PlayerUpdates.AbLoopMode(nextAbLoopMode)
   }
 
   // ==================== Utility ====================

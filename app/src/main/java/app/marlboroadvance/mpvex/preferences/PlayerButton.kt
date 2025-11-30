@@ -19,7 +19,14 @@ import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Shuffle
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 
 /**
  * Represents a customizable button in the player controls.
@@ -27,6 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
  */
 enum class PlayerButton(
   val icon: ImageVector,
+  val drawBehind: ((AnnotatedString?) -> (DrawScope.(TextMeasurer, Color) -> Unit))? = null,
 ) {
   BACK_ARROW(Icons.AutoMirrored.Outlined.ArrowBack),
   VIDEO_TITLE(Icons.Outlined.Title),
@@ -44,6 +52,30 @@ enum class PlayerButton(
   MORE_OPTIONS(Icons.Outlined.MoreVert),
   CURRENT_CHAPTER(Icons.Outlined.Bookmarks), // <-- CHANGED ICON
   REPEAT_MODE(Icons.Outlined.Repeat),
+  AB_LOOP_MODE(Icons.Outlined.Repeat, { text -> { textMeasurer, color ->
+    val text = text ?: AnnotatedString("AB")
+    val fontSize = (size.height * 0.3f).toSp()
+    val textSize = textMeasurer.measure(
+      text = text,
+      style = TextStyle(
+        fontSize = fontSize,
+        color = color,
+      ),
+    ).size
+
+    drawText(
+      textMeasurer = textMeasurer,
+      text = text,
+      style = TextStyle(
+        fontSize = fontSize,
+        color = color,
+      ),
+      topLeft = Offset(
+        (size.width - textSize.width) / 2f,
+        (size.height - textSize.height) / 2f,
+      ),
+    )
+  }}),
   SHUFFLE(Icons.Outlined.Shuffle),
   NONE(Icons.Outlined.Bookmarks), // 'NONE' is filtered out, icon is irrelevant
 }
@@ -82,6 +114,7 @@ fun getPlayerButtonLabel(button: PlayerButton): String =
     PlayerButton.MORE_OPTIONS -> "More Options" // stringResource(R.string.btn_label_more)
     PlayerButton.CURRENT_CHAPTER -> "Current Chapter" // stringResource(R.string.btn_label_chapter)
     PlayerButton.REPEAT_MODE -> "Repeat Mode" // stringResource(R.string.btn_label_repeat_mode)
+    PlayerButton.AB_LOOP_MODE -> "A-B Loop"
     PlayerButton.SHUFFLE -> "Shuffle" // stringResource(R.string.btn_label_shuffle)
     PlayerButton.NONE -> "None" // stringResource(R.string.btn_label_none)
   }
